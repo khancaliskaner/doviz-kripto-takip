@@ -24,6 +24,17 @@ kripto ana sayfada olsun" dediği için Aşama 3'ün kapsamı da bu adımda yap�
 Otomatik yenileme de Aşama 4'ten öne alındı; Aşama 4'te sadece favori
 işaretleme + localStorage kaldı.
 
+## Yayın
+
+- **Adres:** https://khancaliskaner.github.io/doviz-kripto-takip/ (GitHub Pages, `main` dalı, kök klasör)
+- **Depo:** https://github.com/khancaliskaner/doviz-kripto-takip (public; ücretsiz Pages bunu ister)
+- 24 Eylül 2026'da yayınlandı; 29 dosyanın hepsi yerelle birebir aynı doğrulandı, testler yayındaki dosyalarla da geçti.
+- Commit e-postası GitHub noreply adresi (`331288514+khancaliskaner.noreply.github.com`, yalnızca bu depoda yerel ayar);
+  gerçek Gmail adresi commit geçmişinde YOK. Ad, git'te ayarlı olan (`KAAN ÇALIŞKANER`).
+- **Güncelleme akışı:** dosyayı değiştir → `index.html` `?v=N` ve `sw.js` `VERSION` artır → `git add`, `git commit`, `git push`.
+  Pages yaklaşık 30 sn içinde yeniden yayınlar. Push dışarıya açık işlemdir; kullanıcı istediğinde yap.
+- Yayında alarm sunucusu yok (statik site). Sayfa bunu algılayıp "Bu yayında alarm sunucusu yok" der.
+
 ### Talimat dışı, sonradan eklenenler
 
 - Koyu / açık tema düğmesi

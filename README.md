@@ -1,5 +1,7 @@
 # Döviz & Kripto Takip
 
+**Canlı site:** https://khancaliskaner.github.io/doviz-kripto-takip/
+
 Döviz kurlarını ([Frankfurter](https://frankfurter.dev)) ve kripto paraları ([CoinGecko](https://www.coingecko.com))
 TL bazında canlı takip eden, API anahtarı gerektirmeyen bir web uygulaması. Build adımı yok: saf HTML/CSS/JS.
 
