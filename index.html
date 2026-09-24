@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <!-- viewport-fit=cover: çentikli telefonlarda tam ekran; güvenli alanlar CSS env() ile ayarlanıyor -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f1216" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="description" content="Döviz kurlarını ve kripto paraları TL bazında canlı takip et.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Takip">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Döviz &amp; Kripto Takip</title>
+  <!-- Kayıtlı temayı sayfa boyanmadan uygula; yoksa açık temayı seçen kullanıcı her açılışta
+       bir an koyu tema görür. Anahtar js/config.js içindeki themeKey ile aynı olmalı. -->
+  <script>
+    try {
+      var t = localStorage.getItem('dkt.theme.v1');
+      if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="css/style.css?v=10">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <h1 class="logo">Döviz &amp; Kripto Takip</h1>
+      <div class="header-right">
+        <span class="live" id="live-indicator" data-state="loading">
+          <span class="dot"></span>
+          <span id="live-text">Yükleniyor…</span>
+        </span>
+        <button id="install-btn" class="btn btn-ghost" type="button" hidden>Uygulamayı yükle</button>
+        <button id="theme-btn" class="icon-btn" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"></button>
+        <button id="refresh-btn" class="btn" type="button">Yenile</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div id="alert-bar" class="alert-bar" aria-live="assertive"></div>
+  </div>
+
+  <div class="wrap">
+    <div id="fatal" class="fatal" hidden></div>
+  </div>
+
+  <main class="wrap">
+
+    <section class="panel" id="fav-panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Favoriler</h2>
+        <p class="panel-meta" id="fav-meta"></p>
+      </div>
+      <p class="panel-note">Takip etmek istediklerini yıldızla; seçimin bu tarayıcıda saklanır.</p>
+      <div id="fav-list" class="card-list"></div>
+    </section>
+
+    <section class="panel" id="alarm-panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Fiyat Alarmları</h2>
+        <p class="panel-meta" id="alarm-meta"></p>
+      </div>
+      <p class="panel-note">Fiyat hedefine ulaşınca haber verilir. Sayfa bir sekmede açıkken alarmlar kontrol edilir; sekme kapalıyken de istersen aşağıdan sunucu takibini aç.</p>
+      <div id="alarm-list" class="alarm-list"></div>
+      <div class="server-box">
+        <p id="server-status" class="panel-meta"></p>
+        <button id="server-toggle" class="add-btn" type="button" hidden></button>
+      </div>
+    </section>
+
+    <section class="panel" id="search-panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Ara ve Ekle</h2>
+      </div>
+      <p class="panel-note">Listede olmayan döviz veya kripto paraları bul, favorilerine ekle.</p>
+      <input id="search-input" class="search-input" type="search" autocomplete="off"
+             placeholder="Örn: sterlin, HUF, dolar, solana, pepe…" aria-label="Döviz veya kripto ara">
+      <div id="search-results" class="search-results"></div>
+    </section>
+
+    <section class="panel" id="fx-panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Döviz Kurları</h2>
+        <p class="panel-meta" id="fx-meta">yükleniyor…</p>
+      </div>
+      <p class="panel-note">Dünyada en çok işlem gören para birimleri, TL karşılığıyla.</p>
+      <div id="fx-list" class="card-list"></div>
+    </section>
+
+    <section class="panel" id="crypto-panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Kripto Paralar</h2>
+        <p class="panel-meta" id="crypto-meta">yükleniyor…</p>
+      </div>
+      <p class="panel-note">Piyasa değerine göre en büyük kripto paralar, TL fiyatıyla.</p>
+      <div id="crypto-list" class="card-list"></div>
+    </section>
+
+  </main>
+
+  <!-- Favori kartına tıklayınca açılan 7 günlük grafik penceresi -->
+  <div id="chart-modal" class="modal" hidden>
+    <div id="chart-backdrop" class="modal-backdrop"></div>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="chart-title">
+      <div class="modal-head">
+        <div>
+          <h3 id="chart-title" class="modal-title"></h3>
+          <p id="chart-sub" class="modal-sub"></p>
+        </div>
+        <button id="chart-close" class="icon-btn" type="button" aria-label="Kapat">✕</button>
+      </div>
+      <div id="chart-stats" class="stats"></div>
+      <div class="chart-wrap">
+        <canvas id="chart-canvas" hidden></canvas>
+        <p id="chart-msg" class="placeholder"></p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="wrap site-footer">
+    <p id="install-hint" hidden>iPhone'da uygulama gibi kullanmak için: Safari'de <strong>Paylaş</strong> düğmesi → <strong>Ana Ekrana Ekle</strong>.</p>
+    <p>
+      Döviz kurları <a href="https://frankfurter.dev" target="_blank" rel="noopener">Frankfurter</a>
+      (Avrupa Merkez Bankası referans kurları, hafta içi günde bir güncellenir) ·
+      kripto fiyatları <a href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko</a>
+      (anlık). Yatırım tavsiyesi değildir.
+    </p>
+  </footer>
+
+  <!-- Fiyat alarmı kurma penceresi -->
+  <div id="alarm-modal" class="modal" hidden>
+    <div id="alarm-backdrop" class="modal-backdrop"></div>
+    <div class="modal-box modal-small" role="dialog" aria-modal="true" aria-labelledby="alarm-title">
+      <div class="modal-head">
+        <div>
+          <h3 id="alarm-title" class="modal-title"></h3>
+          <p id="alarm-price" class="modal-sub"></p>
+        </div>
+        <button id="alarm-close" class="icon-btn" type="button" aria-label="Kapat">✕</button>
+      </div>
+      <form id="alarm-form" class="alarm-form" novalidate>
+        <label for="alarm-target" class="alarm-label">Hedef fiyat (₺)</label>
+        <div class="alarm-input-row">
+          <input id="alarm-target" class="search-input" type="text" inputmode="decimal" autocomplete="off"
+                 placeholder="Örn: 4.200.000 veya 48,5">
+          <button id="alarm-submit" class="btn" type="submit">Alarm kur</button>
+        </div>
+        <p id="alarm-preview" class="panel-meta"></p>
+      </form>
+      <div id="alarm-existing" class="alarm-existing"></div>
+      <div class="alarm-perm-row">
+        <p id="alarm-perm" class="panel-meta"></p>
+        <button id="alarm-perm-btn" class="add-btn" type="button" hidden>Bildirimlere izin ver</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="js/config.js?v=10"></script>
+  <script src="js/storage.js?v=10"></script>
+  <script src="js/alarms.js?v=10"></script>
+  <script src="js/theme.js?v=10"></script>
+  <script src="js/api.js?v=10"></script>
+  <script src="js/ui.js?v=10"></script>
+  <script src="js/chartview.js?v=10"></script>
+  <script src="js/alarmui.js?v=10"></script>
+  <script src="js/pwa.js?v=10"></script>
+  <script src="js/serversync.js?v=10"></script>
+  <script src="js/search.js?v=10"></script>
+  <script src="js/app.js?v=10"></script>
+</body>
+</html>

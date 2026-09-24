@@ -1,0 +1,8 @@
+# Sunucunun verisi: VAPID ozel anahtari ve kullanici alarmlari/abonelikleri burada. ASLA yayinlanmamali.
+server/data/
+
+node_modules/
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
